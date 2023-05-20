@@ -139,6 +139,378 @@ class scene1 extends Phaser.Scene {
     }
 }
 
+class scene2 extends Phaser.Scene {
+    constructor() {
+        super('level2');
+        this.startTime = null;
+        this.costTime = null;
+        this.timerText = null;
+        this.over=false;
+    }
+
+    preload (){
+        this.load.path='./assets/';
+        this.load.image('player', 'red_ball.png');
+        this.load.image('end','endpoint.jpg')
+        this.load.image('background', 'background.jpg');
+        this.load.image('h_longwall', 'long_wall(h).png');
+        this.load.image('s_longwall', 'long_wall(s).png');
+        this.load.image('h_shortwall', 'short_wall(h).png');
+        this.load.image('s_shortwall', 'short_wall(s).png');
+    }
+
+    updateTimer() {
+        if (!this.over) {
+            let time = new Date() - this.startTime;
+            time = Math.floor(time / 1000);
+            this.timerText.setText('Time: ' + time);
+        }
+    }
+
+    create() {
+        this.over=false;
+        this.startTime = new Date();
+        this.timerText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#FFF' });
+        this.time.addEvent({
+            delay: 1000,
+            callback: this.updateTimer,
+            callbackScope: this,
+            loop: true
+        });
+
+
+        player = this.physics.add.sprite(200, 590, 'player');
+        let end = this.physics.add.sprite(575, 600, 'end');
+        end.setImmovable(true);
+        end.body.setCircle(end.displayWidth / 2, 10, 0);
+        end.setScale(0.035);
+        let graphics = this.make.graphics({});
+        graphics.fillStyle(0xffffff);
+        graphics.fillCircle(end.x, end.y, end.displayWidth / 2);
+        let mask = new Phaser.Display.Masks.BitmapMask(this, graphics);
+        end.setMask(mask);
+        
+        
+        walls = this.physics.add.staticGroup();
+        walls.create(200,120,'s_longwall');
+        walls.create(300,120,'s_longwall');
+        walls.create(400,120,'s_longwall');
+        walls.create(500,120,'s_longwall');
+        walls.create(600,120,'s_longwall');
+        
+        walls.create(200,640,'s_longwall');
+        walls.create(300,640,'s_longwall');
+        walls.create(400,640,'s_longwall');
+        walls.create(500,640,'s_longwall');
+        walls.create(600,640,'s_longwall');
+
+        walls.create(160,180,'h_longwall');
+        walls.create(160,280,'h_longwall');
+        walls.create(160,380,'h_longwall');
+        walls.create(160,480,'h_longwall');
+        walls.create(160,580,'h_longwall');
+        
+        walls.create(640,180,'h_longwall');
+        walls.create(640,280,'h_longwall');
+        walls.create(640,380,'h_longwall');
+        walls.create(640,480,'h_longwall');
+        walls.create(640,580,'h_longwall');
+
+        walls.create(400,280,'h_longwall');
+        walls.create(400,380,'h_longwall');
+        walls.create(400,480,'h_longwall');
+        walls.create(400,580,'h_longwall');
+
+        walls.create(220,550,'s_longwall');
+        walls.create(340,450,'s_longwall');
+        walls.create(220,350,'s_longwall');
+        walls.create(300,180,'h_longwall');
+        walls.create(440,220,'s_longwall');
+        walls.create(475,160,'s_shortwall');
+        walls.create(580,380,'s_longwall');
+        walls.create(530,580,'h_longwall');
+        walls.create(530,510,'h_shortwall');
+
+        this.physics.add.collider(player, walls, this.hitWall, null, this);
+        this.physics.add.collider(player, end, this.hitEnd, null, this);
+        cursors = this.input.keyboard.createCursorKeys();
+    }
+
+    update() {
+        const maxVelocity = 200;
+        const acceleration = 10;
+        const deceleration = 20;
+    
+        if (cursors.up.isDown){
+            let velocity_y=player.body.velocity.y - acceleration
+            if(velocity_y<-maxVelocity){
+                player.body.velocity.y=-maxVelocity
+            } else{
+                player.body.velocity.y=velocity_y
+            }
+        } else if (cursors.down.isDown){
+            let velocity_y=player.body.velocity.y + acceleration
+            if(velocity_y>maxVelocity){
+                player.body.velocity.y=maxVelocity
+            } else{
+                player.body.velocity.y=velocity_y
+            }
+        } else {
+            if (player.body.velocity.y > 0) {
+                player.body.velocity.y = Math.max(player.body.velocity.y - deceleration, 0);
+            } else if (player.body.velocity.y < 0) {
+                player.body.velocity.y = Math.min(player.body.velocity.y + deceleration, 0);
+            }
+        }
+        
+        if (cursors.right.isDown){
+            let velocity_x=player.body.velocity.x + acceleration
+            if(velocity_x>maxVelocity){
+                player.body.velocity.x=maxVelocity
+            } else{
+                player.body.velocity.x=velocity_x
+            }
+        } else if (cursors.left.isDown){
+            let velocity_x=player.body.velocity.x - acceleration
+            if(velocity_x<-maxVelocity){
+                player.body.velocity.x=-maxVelocity
+            } else{
+                player.body.velocity.x=velocity_x
+            }
+        } 
+        else {
+            // decelerate when no keys are pressed
+            if (player.body.velocity.x > 0) {
+                player.body.velocity.x = Math.max(player.body.velocity.x - deceleration, 0);
+            } else if (player.body.velocity.x < 0) {
+                player.body.velocity.x = Math.min(player.body.velocity.x + deceleration, 0);
+            }
+        }
+    }
+
+    hitWall (player, wall){
+        player.setPosition(200, 590);
+        player.setVelocityX(0);
+        player.setVelocityY(0);
+    }
+
+    hitEnd (player, sprite){
+        this.over=true;
+        this.costTime = new Date() - this.startTime;
+        player.setPosition(-100,-100);
+        this.scene.start('Ending', { time: this.costTime, level: 'level2'});
+    }
+}
+
+class scene3 extends Phaser.Scene {
+    constructor() {
+        super('level3');
+        this.startTime = null;
+        this.costTime = null;
+        this.timerText = null;
+        this.over=false;
+    }
+
+    preload (){
+        this.load.path='./assets/';
+        this.load.image('player', 'red_ball.png');
+        this.load.image('end','endpoint.jpg')
+        this.load.image('background', 'background.jpg');
+        this.load.image('h_longwall', 'long_wall(h).png');
+        this.load.image('s_longwall', 'long_wall(s).png');
+        this.load.image('h_shortwall', 'short_wall(h).png');
+        
+    }
+
+    updateTimer() {
+        if (!this.over) {
+            let time = new Date() - this.startTime;
+            time = Math.floor(time / 1000);
+            this.timerText.setText('Time: ' + time);
+        }
+    }
+
+    create() {
+        this.over=false;
+        this.startTime = new Date();
+        this.timerText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#FFF' });
+        this.time.addEvent({
+            delay: 1000,
+            callback: this.updateTimer,
+            callbackScope: this,
+            loop: true
+        });
+
+
+        player = this.physics.add.sprite(200, 590, 'player');
+        let end = this.physics.add.sprite(450, 600, 'end');
+        end.setImmovable(true);
+        end.body.setCircle(end.displayWidth / 2, 10, 0);
+        end.setScale(0.035);
+        let graphics = this.make.graphics({});
+        graphics.fillStyle(0xffffff);
+        graphics.fillCircle(end.x, end.y, end.displayWidth / 2);
+        let mask = new Phaser.Display.Masks.BitmapMask(this, graphics);
+        end.setMask(mask);
+        
+        
+        walls = this.physics.add.staticGroup();
+        walls.create(200,120,'s_longwall');
+        walls.create(300,120,'s_longwall');
+        walls.create(400,120,'s_longwall');
+        walls.create(500,120,'s_longwall');
+        walls.create(600,120,'s_longwall');
+        
+        walls.create(200,640,'s_longwall');
+        walls.create(300,640,'s_longwall');
+        walls.create(400,640,'s_longwall');
+        walls.create(500,640,'s_longwall');
+        walls.create(600,640,'s_longwall');
+
+        walls.create(160,180,'h_longwall');
+        walls.create(160,280,'h_longwall');
+        walls.create(160,380,'h_longwall');
+        walls.create(160,480,'h_longwall');
+        walls.create(160,580,'h_longwall');
+        
+        walls.create(640,180,'h_longwall');
+        walls.create(640,280,'h_longwall');
+        walls.create(640,380,'h_longwall');
+        walls.create(640,480,'h_longwall');
+        walls.create(640,580,'h_longwall');
+
+        walls.create(400,305,'h_shortwall');
+        walls.create(400,380,'h_longwall');
+        walls.create(400,480,'h_longwall');
+        walls.create(400,580,'h_longwall');
+
+        walls.create(220,550,'s_longwall');
+        walls.create(440,270,'s_longwall');
+        walls.create(300,180,'h_longwall');
+
+        let spriteGroup = this.add.group();
+        let movingWall1 = this.physics.add.sprite(450, 350, 's_longwall');
+        let movingWall2 = this.physics.add.sprite(600, 450, 's_longwall');
+        this.tweens.add({
+            targets: movingWall1,
+            x: '+=150',
+            ease: 'Linear',
+            duration: 500,
+            yoyo: true,
+            repeat: -1
+        });
+        this.tweens.add({
+            targets: movingWall2,
+            x: '-=150',
+            ease: 'Linear',
+            duration: 500,
+            yoyo: true,
+            repeat: -1
+        });
+        movingWall1.setImmovable(true);
+        spriteGroup.add(movingWall1);
+        movingWall2.setImmovable(true);
+        spriteGroup.add(movingWall2);
+
+        let movingWall3 = this.physics.add.sprite(260, 325, 'h_longwall');
+        let movingWall4 = this.physics.add.sprite(310, 425, 'h_longwall');
+        let movingWall5 = this.physics.add.sprite(360, 325, 'h_longwall');
+        this.tweens.add({
+            targets: [movingWall3,movingWall5],
+            y: '+=150',
+            ease: 'Linear',
+            duration: 1000,
+            yoyo: true,
+            repeat: -1
+        });
+        this.tweens.add({
+            targets: movingWall4,
+            y: '-=150',
+            ease: 'Linear',
+            duration: 1000,
+            yoyo: true,
+            repeat: -1
+        });
+        movingWall3.setImmovable(true);
+        spriteGroup.add(movingWall3);
+        movingWall4.setImmovable(true);
+        spriteGroup.add(movingWall4);
+        movingWall5.setImmovable(true);
+        spriteGroup.add(movingWall5);
+
+
+        this.physics.add.collider(player, walls, this.hitWall, null, this);
+        this.physics.add.collider(player, spriteGroup, this.hitWall, null, this);
+        this.physics.add.collider(player, end, this.hitEnd, null, this);
+        cursors = this.input.keyboard.createCursorKeys();
+    }
+
+    update() {
+        const maxVelocity = 200;
+        const acceleration = 10;
+        const deceleration = 20;
+    
+        if (cursors.up.isDown){
+            let velocity_y=player.body.velocity.y - acceleration
+            if(velocity_y<-maxVelocity){
+                player.body.velocity.y=-maxVelocity
+            } else{
+                player.body.velocity.y=velocity_y
+            }
+        } else if (cursors.down.isDown){
+            let velocity_y=player.body.velocity.y + acceleration
+            if(velocity_y>maxVelocity){
+                player.body.velocity.y=maxVelocity
+            } else{
+                player.body.velocity.y=velocity_y
+            }
+        } else {
+            if (player.body.velocity.y > 0) {
+                player.body.velocity.y = Math.max(player.body.velocity.y - deceleration, 0);
+            } else if (player.body.velocity.y < 0) {
+                player.body.velocity.y = Math.min(player.body.velocity.y + deceleration, 0);
+            }
+        }
+        
+        if (cursors.right.isDown){
+            let velocity_x=player.body.velocity.x + acceleration
+            if(velocity_x>maxVelocity){
+                player.body.velocity.x=maxVelocity
+            } else{
+                player.body.velocity.x=velocity_x
+            }
+        } else if (cursors.left.isDown){
+            let velocity_x=player.body.velocity.x - acceleration
+            if(velocity_x<-maxVelocity){
+                player.body.velocity.x=-maxVelocity
+            } else{
+                player.body.velocity.x=velocity_x
+            }
+        } 
+        else {
+            // decelerate when no keys are pressed
+            if (player.body.velocity.x > 0) {
+                player.body.velocity.x = Math.max(player.body.velocity.x - deceleration, 0);
+            } else if (player.body.velocity.x < 0) {
+                player.body.velocity.x = Math.min(player.body.velocity.x + deceleration, 0);
+            }
+        }
+    }
+
+    hitWall (player, wall){
+        player.setPosition(200, 590);
+        player.setVelocityX(0);
+        player.setVelocityY(0);
+    }
+
+    hitEnd (player, sprite){
+        this.over=true;
+        this.costTime = new Date() - this.startTime;
+        player.setPosition(-100,-100);
+        this.scene.start('Ending', { time: this.costTime, level: 'level3'});
+    }
+}
+
 class Intro extends Phaser.Scene {
     constructor() {
         super('Intro');
