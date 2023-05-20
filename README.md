@@ -1,4 +1,4 @@
-A simple adventure game by Xing Zhong.[Game Link](https://github.com/rndmcnlly).
+A simple adventure game by Xing Zhong. [Game Link](https://kingz060.github.io/CMPM120-Physics/).
 
 Gameplay/Experience requirements:
 - **Continuous and discrete inputs from the player:** Pressing the arrow keys once will take one step in the corresponding direction. Long press will keep going and speed up.
