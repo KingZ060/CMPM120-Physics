@@ -4,7 +4,7 @@ let config={
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: 960,
-        heigh: 540,
+        height: 540
     },
     type:Phaser.AUTO,
     physics: {
