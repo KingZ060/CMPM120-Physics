@@ -1,12 +1,8 @@
 
 let config={
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 960,
-        height: 540
-    },
-    type:Phaser.AUTO,
+    type:Phaser.WEBGL,
+    width: 960,
+    heigh: 540,
     physics: {
         default: 'arcade',
         arcade: {
